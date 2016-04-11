@@ -7,6 +7,8 @@ import (
   "github.com/BurntSushi/toml"
   "github.com/gin-gonic/gin"
   // use for hash from scrypt
+  "crypto/cipher"
+  "golang.org/x/crypto/blowfish"
   "encoding/base64"
   "strings"
 )
@@ -26,7 +28,7 @@ type ES struct {
 }
 type Auth struct {
   Salt string `toml:"salt"`
-  Pass string `toml:"seed"`
+  Pass string `toml:"pass"`
 }
 
 // Request Paramater
@@ -63,14 +65,25 @@ func init() {
 /*
 * auth code is "base64encodedpass" + "," + "base64encodedsalt" strings over base64 encoded.
 */
+func new_auth()(res bool) {
+  return res
+}
 func auth(st string)(res bool) {
+  log.Println(fmt.Sprintf("auth key is %s", st))
   de, _ := base64.StdEncoding.DecodeString(st)
+  log.Println(fmt.Sprintf("decoded string is %s", de))
   spstr := strings.Split(string(de), ",")
   pass_code, _ := base64.StdEncoding.DecodeString(spstr[0])
+  log.Println(fmt.Sprintf("pass_code is %s", pass_code))
+  log.Println(fmt.Sprintf("con.Auth.Pass is %s", con.Auth.Pass))
   salt_code, _ := base64.StdEncoding.DecodeString(spstr[1])
+  log.Println(fmt.Sprintf("salt_code is %s", salt_code))
+  log.Println(fmt.Sprintf("con.Auth.Salt is %s", con.Auth.Salt))
   if string(pass_code) == con.Auth.Pass && string(salt_code) == con.Auth.Salt {
+    log.Println("authorize is ok")
     res = true
   } else {
+    log.Println("authorize is ng")
     res = false
   }
   return res
@@ -123,10 +136,11 @@ func ListReports(c *gin.Context) {
 func GetReport(c *gin.Context) {
   var req ReportDetail
   c.BindJSON(&req)
+  all_flg := c.Param("all")
   if before(c, req.Auth) {
     c.JSON(200,gin.H{"status":"200",})
   } else {
-    c.JSON(500,gin.H{"status":"500",})
+    c.JSON(500,gin.H{"status":"500","error":"unknown error", "value":all_flg})
   }
 }
 func GetSegment(c *gin.Context) {
