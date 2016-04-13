@@ -63,9 +63,9 @@ func init() {
 }
 
 /*
-* auth code is "base64encodedpass" + "," + "base64encodedsalt" strings over base64 encoded.
+* auth code is base64(blowfish(text+','+salt))
 */
-func decryptBlowfish(et string, key []byte)
+func decryptBlowfish(et string, key []byte) {}
 func new_auth(req string)(res bool) {
   var pass, salt []byte
   pass = []byte(con.Auth.Pass)
